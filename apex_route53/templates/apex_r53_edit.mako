@@ -14,7 +14,11 @@
 % for content in record_set.records:
 ${content}<br/>
 % endfor
-</td><td><i class="icon-th-list"></i><td><a class="btn btn-primary" href="${request.route_path('apex_route53_edit_rs', id=zone.id, recordset_id=record_set.uniq)}">Edit</a> <a class="btn btn-danger" href=" ${request.route_path('apex_route53_delete_rs', id=zone.id, recordset_id=record_set.uniq)}">Delete</a></td></tr>
+</td><td><i class="icon-th-list"></i><td>
+% if record_set.rrset_type not in ['SOA','NS']:
+<a class="btn btn-primary" href="${request.route_path('apex_route53_edit_rs', id=zone.id, recordset_id=record_set.uniq)}">Edit</a> <a class="btn btn-danger" href=" ${request.route_path('apex_route53_delete_rs', id=zone.id, recordset_id=record_set.uniq)}">Delete</a>
+% endif
+</td></tr>
 % endfor
 </table>
 </%def>
