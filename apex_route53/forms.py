@@ -57,6 +57,11 @@ class DomainForm(ExtendedForm):
                          validators.Regexp(domain_re, \
                          message=_('invalid domain'))])
 
+class YesNoForm(ExtendedForm):
+    yesno = SelectField(_('Yes or No'), [validators.Required(), 
+               validators.AnyOf(['Y'], message='Must Select Yes')],
+               choices=[('N', 'No'), ('Y','Yes')])
+
 class ProfileForm(ExtendedForm):
     """ Profile Form
     """

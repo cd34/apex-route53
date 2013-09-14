@@ -21,4 +21,7 @@ ${content}<br/>
 </td></tr>
 % endfor
 </table>
+
+<h3>Delete this zone?</h3>
+${form.render()|n}
 </%def>

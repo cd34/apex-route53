@@ -63,12 +63,12 @@ def includeme(config):
                     permission='authenticated')
 
     config.add_route('apex_route53_delete', '/delete/:id')
-    config.add_view(delete_rs, route_name='apex_route53_delete',
+    config.add_view(delete, route_name='apex_route53_delete',
                     renderer='apex_route53:templates/apex_r53_delete.mako',
                     permission='authenticated')
 
     config.add_route('apex_route53_delete_rs', '/delete/:id/:recordset_id')
-    config.add_view(delete, route_name='apex_route53_delete_rs',
+    config.add_view(delete_rs, route_name='apex_route53_delete_rs',
                     renderer='apex_route53:templates/apex_r53_delete_rs.mako',
                     permission='authenticated')
 
@@ -90,7 +90,7 @@ def includeme(config):
             permission='authenticated')
 
     config.add_route('apex_route53_profile_delete', 
-                     '/profiles/:id/:record_id/delete')
+                     '/profiles/:id/delete')
     config.add_view(profile_delete, route_name='apex_route53_profile_delete',
                 renderer='apex_route53:templates/apex_r53_profile_delete.mako',
                 permission='authenticated')

@@ -1,5 +1,3 @@
-from apex_route53.lib import route53_connect
-
 from pyramid.httpexceptions import HTTPFound
 from pyramid.url import route_url
 
@@ -14,6 +12,7 @@ from apex_route53.forms import (DomainForm,
                                 ProfileRecordForm,
                                 ProviderForm,
                                 RegistrarForm,
+                                YesNoForm,
                                )
 from apex_route53.lib import (get_ip,
                               get_ips,
@@ -25,6 +24,7 @@ from apex_route53.lib import (get_ip,
                               get_profile_records,
                               get_providers,
                               get_registrars,
+                              route53_connect
                              )
 from apex_route53.models import (IP,
                                  Profile,
@@ -44,21 +44,34 @@ def dns_list(request):
     return {'title':'Your domains', 'zones':zones}
 
 def edit(request):
+    form = YesNoForm(request.POST)
     amazon_aws = route53_connect()
     zone = amazon_aws.get_hosted_zone_by_id(request.matchdict['id'])
-    return {'zone':zone}
+    if request.method == 'POST' and form.validate():
+        domain_name = zone.name
+        zone.delete(force=True)
+        flash('{0} deleted'.format(domain_name))
+        return HTTPFound(location= \
+            route_url('apex_route53_index', request))
+    return {'zone':zone, 'form':form}
 
 def delete(request):
+    form = YesNoForm(request.POST)
     amazon_aws = route53_connect()
-    zones = amazon_aws.list_hosted_zones()
-    return {'zones':zones}
+    zone = amazon_aws.get_hosted_zone_by_id(request.matchdict['id'])
+    if request.method == 'POST' and form.validate():
+        domain_name = zone.name
+        zone.delete(force=True)
+        flash('{0} deleted'.format(domain_name))
+        return HTTPFound(location= \
+            route_url('apex_route53_index', request))
+    return {'zone':zone, 'form':form}
 
 def domain_add(request):
     form = DomainForm(request.POST)
     form.ip_id.choices = get_ips_choices()
     form.profile_id.choices = get_profiles_choices()
     if request.method == 'POST' and form.validate():
-        amazon_aws = route53_connect()
         if not request.POST['domain'].endswith('.'):
             request.POST['domain'] = '{0}.'.format(request.POST['domain'])
         zone, change_info = amazon_aws.create_hosted_zone( \
@@ -195,7 +208,6 @@ def webhosts_delete(request):
 def edit_rs(request):
     form = DNS_A_Form(request.POST)
     form.value.choices = get_ips_choices()
-    amazon_aws = route53_connect()
     zone = amazon_aws.get_hosted_zone_by_id(request.matchdict['id'])
     for record_set in zone.record_sets:
         if record_set.uniq == request.matchdict['recordset_id']:
@@ -210,4 +222,16 @@ def edit_rs(request):
     return {}
 
 def delete_rs(request):
-    return {}
+    form = YesNoForm(request.POST)
+    amazon_aws = route53_connect()
+    zone = amazon_aws.get_hosted_zone_by_id(request.matchdict['id'])
+    for rs in zone.record_sets:
+        if rs.uniq == request.matchdict['recordset_id']:
+            record_set = rs
+            break
+    if request.method == 'POST' and form.validate():
+        record_set.delete()
+        flash('Record Set in {0} deleted'.format(zone.name))
+        return HTTPFound(location=route_url('apex_route53_edit', request, 
+            id=zone.id))
+    return {'zone':zone, 'record_set':record_set, 'form':form}
