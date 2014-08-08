@@ -9,7 +9,7 @@ install_requires = [
     "zope.sqlalchemy",
     "pyramid>1.1.2",
     "apex",
-    "route53",
+    #"route53",
 ]
 
 tests_require = install_requires + ['Sphinx', 'docutils',

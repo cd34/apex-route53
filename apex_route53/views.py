@@ -206,6 +206,7 @@ def webhosts_delete(request):
     return {}
 
 def edit_rs(request):
+    amazon_aws = route53_connect()
     form = DNS_A_Form(request.POST)
     form.value.choices = get_ips_choices()
     zone = amazon_aws.get_hosted_zone_by_id(request.matchdict['id'])
