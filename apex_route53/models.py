@@ -2,18 +2,16 @@ from sqlalchemy import (Column,
                         ForeignKey,
                         types,
                         Unicode)
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import (relationship,   
+from sqlalchemy.orm import (DeclarativeBase,
+                            relationship,
                             scoped_session,
                             sessionmaker)
 from sqlalchemy.sql.expression import func
 
-from zope.sqlalchemy import ZopeTransactionExtension
-
-#DBSession = scoped_session(sessionmaker(extension=ZopeTransactionExtension()))
 DBSession = scoped_session(sessionmaker())
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
 
 class Registrar(Base):
     __tablename__ = 'registrars'
@@ -68,12 +66,4 @@ class Profile_Record(Base):
 
 def initialize_sql(engine, settings):
     DBSession.configure(bind=engine)
-    Base.metadata.bind = engine
     Base.metadata.create_all(engine)
-    try:
-        populate(settings)
-    except IntegrityError:
-        pass
-
-def populate(settings):
-    session = DBSession()

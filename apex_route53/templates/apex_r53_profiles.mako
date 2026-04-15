@@ -6,12 +6,16 @@
 <%def name="body()">
 % if profiles:
 <table class="table table-striped table-bordered">
-<tr><th>Profile</th><th>Notes</th><th>Detail</th><th>Actions</th></tr>
+<thead>
+<tr><th>Profile</th><th>Notes</th><th>Actions</th></tr>
+</thead>
+<tbody>
 % for profile in profiles:
 <tr><td>${profile.profile}</td><td>${profile.note}</td>
-<td><i class="icon-th-list"></i><td><a class="btn btn-primary" href="${request.route_path('apex_route53_profile_edit', id=profile.id)}">Edit</a> <a class="btn btn-danger" href=" ${request.route_path('apex_route53_profile_delete', id=profile.id)}">Delete</a></td>
+<td><a class="btn btn-primary btn-sm" href="${request.route_path('apex_route53_profile_edit', id=profile.id)}">Edit</a> <a class="btn btn-danger btn-sm" href="${request.route_path('apex_route53_profile_delete', id=profile.id)}">Delete</a></td>
 </tr>
 % endfor
+</tbody>
 </table>
 % endif
 

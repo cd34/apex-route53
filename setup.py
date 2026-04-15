@@ -9,7 +9,7 @@ install_requires = [
     "zope.sqlalchemy",
     "pyramid>1.1.2",
     "apex",
-    #"route53",
+    "route53",
 ]
 
 tests_require = install_requires + ['Sphinx', 'docutils',
@@ -18,21 +18,22 @@ tests_require = install_requires + ['Sphinx', 'docutils',
 
 here = os.path.abspath(os.path.dirname(__file__))
 try:
-    README = open(os.path.join(here, 'README.rst')).read()
-    CHANGELOG = open(os.path.join(here, 'CHANGELOG.txt')).read()
+    with open(os.path.join(here, 'README.rst')) as f:
+        README = f.read()
+    with open(os.path.join(here, 'CHANGELOG.txt')) as f:
+        CHANGELOG = f.read()
 except IOError:
     README = CHANGELOG = ''
 
 kwargs = dict(
     version=version,
     name='apex_route53',
-    description="""\
-Pyramid toolkit to add Velruse, Flash Messages,\
-CSRF, ReCaptcha and Sessions""",
+    description="Pyramid toolkit for managing AWS Route53 DNS zones",
     long_description=README + '\n\n' + CHANGELOG,
     classifiers=[
       "Intended Audience :: Developers",
       "Programming Language :: Python",
+      "Programming Language :: Python :: 3",
       "License :: OSI Approved :: MIT License",
     ],
     install_requires=install_requires,
@@ -51,13 +52,9 @@ CSRF, ReCaptcha and Sessions""",
     """
 )
 
-# to update catalogs, use babel and lingua !
 try:
     import babel
     babel = babel  # PyFlakes
-    # if babel is installed, advertise message extractors (if we pass
-    # this to setup() unconditionally, and babel isn't installed,
-    # distutils warns pointlessly)
     kwargs['message_extractors'] = {".": [
         ("**.py",     "lingua_python", None),
         ('**.mako', 'mako', None),

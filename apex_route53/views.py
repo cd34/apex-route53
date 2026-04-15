@@ -1,3 +1,4 @@
+from pyramid.csrf import check_csrf_token
 from pyramid.httpexceptions import HTTPFound
 from pyramid.url import route_url
 
@@ -47,34 +48,34 @@ def edit(request):
     form = YesNoForm(request.POST)
     amazon_aws = route53_connect()
     zone = amazon_aws.get_hosted_zone_by_id(request.matchdict['id'])
-    if request.method == 'POST' and form.validate():
-        domain_name = zone.name
-        zone.delete(force=True)
-        flash('{0} deleted'.format(domain_name))
-        return HTTPFound(location= \
-            route_url('apex_route53_index', request))
-    return {'zone':zone, 'form':form}
+    return {'zone': zone, 'form': form}
 
 def delete(request):
     form = YesNoForm(request.POST)
     amazon_aws = route53_connect()
     zone = amazon_aws.get_hosted_zone_by_id(request.matchdict['id'])
-    if request.method == 'POST' and form.validate():
+    if request.method == 'POST':
+        check_csrf_token(request)
+        if not form.validate():
+            return {'zone': zone, 'form': form}
         domain_name = zone.name
         zone.delete(force=True)
         flash('{0} deleted'.format(domain_name))
-        return HTTPFound(location= \
-            route_url('apex_route53_index', request))
-    return {'zone':zone, 'form':form}
+        return HTTPFound(location=route_url('apex_route53_index', request))
+    return {'zone': zone, 'form': form}
 
 def domain_add(request):
     form = DomainForm(request.POST)
     form.ip_id.choices = get_ips_choices()
     form.profile_id.choices = get_profiles_choices()
-    if request.method == 'POST' and form.validate():
+    amazon_aws = route53_connect()
+    if request.method == 'POST':
+        check_csrf_token(request)
+        if not form.validate():
+            return {'title': 'Add Domain', 'form': form}
         if not request.POST['domain'].endswith('.'):
             request.POST['domain'] = '{0}.'.format(request.POST['domain'])
-        zone, change_info = amazon_aws.create_hosted_zone( \
+        zone, change_info = amazon_aws.create_hosted_zone(
             request.POST['domain'])
         ip = get_ip(request.POST['ip_id'])
         profile_records = get_profile_records(request.POST['profile_id'])
@@ -85,39 +86,41 @@ def domain_add(request):
                 name = '{0}.{1}'.format(record.name, request.POST['domain'])
 
             if record.record_type == 'A':
-                new_zone, change_info = zone.create_a_record(name=name, \
-                    values=contents)
+                new_zone, change_info = zone.create_a_record(
+                    name=name, values=contents)
                 new_zone.save()
             if record.record_type == 'AAAA':
-                new_zone, change_info = zone.create_aaaa_record(name=name, \
-                    values=contents)
+                new_zone, change_info = zone.create_aaaa_record(
+                    name=name, values=contents)
             if record.record_type == 'MX':
-                new_zone, change_info = zone.create_mx_record(name=name, \
-                    values=contents)
+                new_zone, change_info = zone.create_mx_record(
+                    name=name, values=contents)
                 new_zone.save()
             if record.record_type == 'SPF':
-                new_zone, change_info = zone.create_spf_record(name=name, \
-                    values=contents)
+                new_zone, change_info = zone.create_spf_record(
+                    name=name, values=contents)
                 new_zone.save()
 
-    return {'title':'Add Domain', 'form':form}
+    return {'title': 'Add Domain', 'form': form}
 
 def profiles(request):
     form = ProfileForm(request.POST)
-    if request.method == 'POST' and form.validate():
+    if request.method == 'POST':
+        check_csrf_token(request)
+        if not form.validate():
+            return {'title': 'Profiles', 'form': form, 'profiles': get_profiles()}
         record = Profile()
         record = merge_session_with_post(record, request.POST.items())
         DBSession.merge(record)
         DBSession.flush()
-        return HTTPFound(location= \
-            route_url('apex_route53_profiles', request))
-    return {'title':'Profiles', 'form':form, 'profiles':get_profiles()}
+        return HTTPFound(location=route_url('apex_route53_profiles', request))
+    return {'title': 'Profiles', 'form': form, 'profiles': get_profiles()}
 
 def profile_edit(request):
     form = ProfileRecordForm(request.POST)
     if 'record_id' in request.matchdict:
-        record = get_profile_record(request.matchdict['id'], \
-            request.matchdict['record_id'])
+        record = get_profile_record(
+            request.matchdict['id'], request.matchdict['record_id'])
         if not request.POST:
             form.record_type.data = record.record_type
             form.name.data = record.name
@@ -125,28 +128,39 @@ def profile_edit(request):
     else:
         record = Profile_Record(profile_id=request.matchdict['id'])
 
-    if request.method == 'POST' and form.validate():
+    if request.method == 'POST':
+        check_csrf_token(request)
+        if not form.validate():
+            return {
+                'title': 'Edit Profile Records',
+                'form': form,
+                'profile': get_profile(request.matchdict['id']),
+                'profile_records': get_profile_records(request.matchdict['id']),
+            }
         if request.POST['record_type'] in ['TXT', 'SPF']:
-            request.POST['contents'] = '"' + request.POST['contents'] \
-                .replace('"','') + '"'
+            request.POST['contents'] = (
+                '"' + request.POST['contents'].replace('"', '') + '"')
         record = merge_session_with_post(record, request.POST.items())
         DBSession.merge(record)
         DBSession.flush()
-        return HTTPFound(location= \
-            route_url('apex_route53_profile_edit', request, \
+        return HTTPFound(location=route_url(
+            'apex_route53_profile_edit', request,
             id=request.matchdict['id']))
-    return {'title':'Edit Profile Records', \
-        'form':form, \
-        'profile':get_profile(request.matchdict['id']), \
-        'profile_records':get_profile_records(request.matchdict['id'])}
+    return {
+        'title': 'Edit Profile Records',
+        'form': form,
+        'profile': get_profile(request.matchdict['id']),
+        'profile_records': get_profile_records(request.matchdict['id']),
+    }
 
 def profile_delete(request):
-    record = get_profile_record(request.matchdict['id'], \
-        request.matchdict['record_id'])
+    check_csrf_token(request)
+    record = get_profile_record(
+        request.matchdict['id'], request.matchdict['record_id'])
     DBSession.delete(record)
     DBSession.flush()
-    return HTTPFound(location= \
-        route_url('apex_route53_profile_edit', request, \
+    return HTTPFound(location=route_url(
+        'apex_route53_profile_edit', request,
         id=request.matchdict['id']))
 
 def registrars(request):
@@ -154,13 +168,15 @@ def registrars(request):
     registrars = get_registrars()
     record = Registrar()
 
-    if request.method == 'POST' and form.validate():
+    if request.method == 'POST':
+        check_csrf_token(request)
+        if not form.validate():
+            return {'title': 'Registrars', 'form': form, 'registrars': registrars}
         record = merge_session_with_post(record, request.POST.items())
         DBSession.merge(record)
         DBSession.flush()
-        return HTTPFound(location= \
-            route_url('apex_route53_registrars', request))
-    return {'title':'Registrars', 'form':form, 'registrars':registrars}
+        return HTTPFound(location=route_url('apex_route53_registrars', request))
+    return {'title': 'Registrars', 'form': form, 'registrars': registrars}
 
 def ips(request):
     providers = get_providers()
@@ -172,13 +188,15 @@ def ips(request):
     form.provider_id.choices = providers
     record = IP()
 
-    if request.method == 'POST' and form.validate():
+    if request.method == 'POST':
+        check_csrf_token(request)
+        if not form.validate():
+            return {'title': 'IP Addresses', 'form': form, 'ips': ips}
         record = merge_session_with_post(record, request.POST.items())
         DBSession.merge(record)
         DBSession.flush()
-        return HTTPFound(location= \
-            route_url('apex_route53_ips', request))
-    return {'title':'IP Addresses', 'form':form, 'ips':ips}
+        return HTTPFound(location=route_url('apex_route53_ips', request))
+    return {'title': 'IP Addresses', 'form': form, 'ips': ips}
 
 def ips_edit(request):
     return {}
@@ -191,13 +209,15 @@ def webhosts(request):
     providers = DBSession.query(Provider).order_by(Provider.name).all()
     record = Provider()
 
-    if request.method == 'POST' and form.validate():
+    if request.method == 'POST':
+        check_csrf_token(request)
+        if not form.validate():
+            return {'title': 'Web Hosts', 'form': form, 'providers': providers}
         record = merge_session_with_post(record, request.POST.items())
         DBSession.merge(record)
         DBSession.flush()
-        return HTTPFound(location= \
-            route_url('apex_route53_webhosts', request))
-    return {'title':'Web Hosts', 'form':form, 'providers':providers}
+        return HTTPFound(location=route_url('apex_route53_webhosts', request))
+    return {'title': 'Web Hosts', 'form': form, 'providers': providers}
 
 def webhosts_edit(request):
     return {}
@@ -217,22 +237,28 @@ def edit_rs(request):
             form.alias.data = 'Y' if record_set.is_alias_record_set() else 'N'
             form.ttl.data = record_set.ttl
             form.value.data = record_set.records[0]
-            #form.routing_policy.data = record_set.routing_policy
-            # not supported in python-route53
-            return {'zone':zone, 'record_set':record_set, 'form':form}
+            return {'zone': zone, 'record_set': record_set, 'form': form}
     return {}
 
 def delete_rs(request):
     form = YesNoForm(request.POST)
     amazon_aws = route53_connect()
     zone = amazon_aws.get_hosted_zone_by_id(request.matchdict['id'])
+    record_set = None
     for rs in zone.record_sets:
         if rs.uniq == request.matchdict['recordset_id']:
             record_set = rs
             break
-    if request.method == 'POST' and form.validate():
+    if record_set is None:
+        flash('Record set not found')
+        return HTTPFound(location=route_url('apex_route53_edit', request,
+            id=zone.id))
+    if request.method == 'POST':
+        check_csrf_token(request)
+        if not form.validate():
+            return {'zone': zone, 'record_set': record_set, 'form': form}
         record_set.delete()
         flash('Record Set in {0} deleted'.format(zone.name))
-        return HTTPFound(location=route_url('apex_route53_edit', request, 
+        return HTTPFound(location=route_url('apex_route53_edit', request,
             id=zone.id))
-    return {'zone':zone, 'record_set':record_set, 'form':form}
+    return {'zone': zone, 'record_set': record_set, 'form': form}

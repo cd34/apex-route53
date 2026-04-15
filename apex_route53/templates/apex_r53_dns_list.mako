@@ -20,22 +20,17 @@ ${rec[:-1]}<br/>
 % endif
 % endfor
 </td></tr>
-% endfor:
+% endfor
 </tbody>
 </table>
-
-<script>
-$(document).ready(function() 
-    { 
-        $("#tablesort").tablesorter({
-          sortList: [[0,0]],
-        }); 
-    } 
-); 
-</script>
 </%def>
 
-<%def name="head_js()">
-<script src="${request.static_url('apex_route53:static/jquery.tablesorter.min.js')}">
+<%def name="foot_js()">
+<script src="//code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="${request.static_url('apex_route53:static/jquery.tablesorter.min.js')}"></script>
+<script>
+$(document).ready(function() {
+    $("#tablesort").tablesorter({ sortList: [[0,0]] });
+});
 </script>
 </%def>

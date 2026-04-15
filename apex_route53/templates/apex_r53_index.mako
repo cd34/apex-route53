@@ -10,23 +10,18 @@
 </thead>
 <tbody>
 % for zone in zones:
-<tr><td>${zone.name}</td><td>registrar</td><td><a class="btn btn-primary" href="${request.route_path('apex_route53_edit', id=zone.id)}">Edit</a> <a class="btn btn-danger" href=" ${request.route_path('apex_route53_delete', id=zone.id)}">Delete</a></td></tr>
-% endfor:
+<tr><td>${zone.name}</td><td>registrar</td><td><a class="btn btn-primary btn-sm" href="${request.route_path('apex_route53_edit', id=zone.id)}">Edit</a> <a class="btn btn-danger btn-sm" href="${request.route_path('apex_route53_delete', id=zone.id)}">Delete</a></td></tr>
+% endfor
 </tbody>
 </table>
-
-<script>
-$(document).ready(function()
-    {
-        $("#tablesort").tablesorter({
-          sortList: [[0,0]],
-        });
-    }
-);
-</script>
 </%def>
 
-<%def name="head_js()">
-<script src="${request.static_url('apex_route53:static/jquery.tablesorter.min.js')}">   
+<%def name="foot_js()">
+<script src="//code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="${request.static_url('apex_route53:static/jquery.tablesorter.min.js')}"></script>
+<script>
+$(document).ready(function() {
+    $("#tablesort").tablesorter({ sortList: [[0,0]] });
+});
 </script>
-</%def> 
+</%def>

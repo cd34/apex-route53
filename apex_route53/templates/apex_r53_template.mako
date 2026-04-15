@@ -1,44 +1,48 @@
 <%namespace file="apex:templates/flash_template.mako" import="*"/>
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <title>${self.page_title()}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
-<style>
-body { padding:80px; }
-</style>
-    <script src="http://code.jquery.com/jquery.js"></script>
-<script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
-${self.head_js()}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="//cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+${self.head_css()}
   </head>
   <body>
 
-<div class="navbar navbar-fixed-top navbar-inverse">
-  <div class="navbar-inner">
-    <div class="container">
-     <a class="brand" href="/">Route53 DNS Manager</a>
-      <ul class="nav">
-<li><a href="${request.route_path('apex_route53_index')}">Home</a></li>
-<li><a href="${request.route_path('apex_route53_dns_list')}"">DNS List</a></li>
-<li><a href="${request.route_path('apex_route53_domain_add')}"">Add Domains</a></li>
-<li><a href="${request.route_path('apex_route53_profiles')}"">Add Profiles</a></li>
-<li><a href="${request.route_path('apex_route53_registrars')}"">Add Registrars</a></li>
-<li><a href="${request.route_path('apex_route53_ips')}"">Add IP Addresses</a></li>
-<li><a href="${request.route_path('apex_route53_webhosts')}"">Add Webhost</a></li>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="/">Route53 DNS Manager</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link" href="${request.route_path('apex_route53_index')}">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="${request.route_path('apex_route53_dns_list')}">DNS List</a></li>
+        <li class="nav-item"><a class="nav-link" href="${request.route_path('apex_route53_domain_add')}">Add Domains</a></li>
+        <li class="nav-item"><a class="nav-link" href="${request.route_path('apex_route53_profiles')}">Profiles</a></li>
+        <li class="nav-item"><a class="nav-link" href="${request.route_path('apex_route53_registrars')}">Registrars</a></li>
+        <li class="nav-item"><a class="nav-link" href="${request.route_path('apex_route53_ips')}">IP Addresses</a></li>
+        <li class="nav-item"><a class="nav-link" href="${request.route_path('apex_route53_webhosts')}">Webhosts</a></li>
       </ul>
     </div>
   </div>
-</div>
-<div class="container">
+</nav>
+
+<div class="container" style="padding-top: 80px;">
   <div class="row">
+    <div class="col">
 ${apex_flash()}
 <h2>${self.page_title()}</h2>
 
 ${self.body()}
+    </div>
   </div>
 </div>
 
+<script src="//cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+${self.foot_js()}
   </body>
 </html>
 
@@ -48,5 +52,11 @@ ${title}
 % endif
 </%def>
 
+<%def name="head_css()">
+</%def>
+
 <%def name="head_js()">
+</%def>
+
+<%def name="foot_js()">
 </%def>
